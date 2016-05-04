@@ -32,13 +32,17 @@ var build = function(group, options, prev) {
     }
 
     if(group instanceof Array){
-        var subgroups = [];
-        for (var i = 0; i < group.length; i++) {
-            var child = group[i];
-            subgroups.push(build(child, options, prev));
-            prev = child;
+        if(group.length == 1){
+            group = group[0]
+        }else{
+            var subgroups = [];
+            for (var i = 0; i < group.length; i++) {
+                var child = group[i];
+                subgroups.push(build(child, options, prev));
+                prev = child;
+            }
+            return buildCommon.makeFragment(subgroups);
         }
-        return buildCommon.makeFragment(subgroups);
     }
 
     if (groupTypes[group.type]) {
@@ -1162,14 +1166,8 @@ groupTypes.leftright = function(group, options, prev) {
     // Build the inner expression
     var inner = build(group.value.body, options.reset());
 
-    var innerHeight = 0;
-    var innerDepth = 0;
-
-    // Calculate its height and depth
-    for (var i = 0; i < inner.length; i++) {
-        innerHeight = Math.max(inner[i].height, innerHeight);
-        innerDepth = Math.max(inner[i].depth, innerDepth);
-    }
+    var innerHeight = inner.height;
+    var innerDepth = inner.depth;
 
     // The size of delimiters is the same, regardless of what style we are
     // in. Thus, to correctly calculate the size of delimiter we need around
