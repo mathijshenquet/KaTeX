@@ -13,6 +13,7 @@
 
 var matchAt = require("match-at");
 
+var utils = require("./utils");
 var ParseError = require("./ParseError");
 
 // The main lexer class
@@ -102,6 +103,7 @@ Lexer.prototype._innerLexColor = function(pos) {
 // A regex to match a dimension. Dimensions look like
 // "1.2em" or ".4pt" or "1 ex"
 var sizeRegex = /(-?)\s*(\d+(?:\.\d*)?|\.\d+)\s*([a-z]{2})/;
+var supportedUnits = ["em", "ex", "mu"];
 
 /**
  * This function lexes a dimension.
@@ -117,7 +119,7 @@ Lexer.prototype._innerLexSize = function(pos) {
     if ((match = matchAt(sizeRegex, input, pos))) {
         var unit = match[3];
         // We only currently handle "em" and "ex" units
-        if (unit !== "em" && unit !== "ex") {
+        if (!utils.contains(supportedUnits, unit)) {
             throw new ParseError("Invalid unit: '" + unit + "'", this, pos);
         }
         return new Token(match[0], {

@@ -1217,6 +1217,10 @@ groupTypes.kern = function(group, options, prev) {
         if (group.value.dimension.unit === "ex") {
             dimension *= fontMetrics.metrics.xHeight;
         }
+        // "There are 18 mu to an em" the TeXbook pg. 168.
+        if (group.value.dimension.unit === "mu") {
+            dimension /= 18;
+        }
     }
 
     dimension /= options.style.sizeMultiplier;
