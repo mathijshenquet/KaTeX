@@ -2,7 +2,7 @@
 /**
  * This file does the main work of building a domTree structure from a parse
  * tree. The entry point is the `buildHTML` function, which takes a parse tree.
- * Then, the buildExpression, buildGroup, and various groupTypes functions are
+ * Then, the build, build, and various groupTypes functions are
  * called, to produce a final HTML tree.
  */
 
@@ -21,16 +21,58 @@ var makeSpan = buildCommon.makeSpan;
  * Take a list of nodes, build them in order, and return a list of the built
  * nodes. This function handles the `prev` node correctly, and passes the
  * previous element from the list as the prev of the next element.
+ *
+ * build is the function that takes a group and calls the correct groupType
+ * function for it. It also handles the interaction of size and style changes
+ * between parents and children.
  */
-var buildExpression = function(expression, options, prev) {
-    var groups = [];
-    for (var i = 0; i < expression.length; i++) {
-        var group = expression[i];
-        groups.push(buildGroup(group, options, prev));
-        prev = group;
+var build = function(group, options, prev) {
+    if (!group) {
+        return makeSpan();
     }
-    return groups;
+
+    if(group instanceof Array){
+        var subgroups = [];
+        for (var i = 0; i < group.length; i++) {
+            var child = group[i];
+            subgroups.push(build(child, options, prev));
+            prev = child;
+        }
+        return buildCommon.makeFragment(subgroups);
+    }
+
+    if (groupTypes[group.type]) {
+        // Call the groupTypes function
+        var groupNode = groupTypes[group.type](group, options, prev);
+        var multiplier;
+
+        // If the style changed between the parent and the current group,
+        // account for the size difference
+        if (options.style !== options.parentStyle) {
+            multiplier = options.style.sizeMultiplier /
+                    options.parentStyle.sizeMultiplier;
+
+            groupNode.height *= multiplier;
+            groupNode.depth *= multiplier;
+        }
+
+        // If the size changed between the parent and the current group, account
+        // for that size difference.
+        if (options.size !== options.parentSize) {
+            multiplier = buildCommon.sizingMultiplier[options.size] /
+                    buildCommon.sizingMultiplier[options.parentSize];
+
+            groupNode.height *= multiplier;
+            groupNode.depth *= multiplier;
+        }
+
+        return groupNode;
+    } else {
+        throw new ParseError(
+            "Got group of unknown type: '" + group.type + "'");
+    }
 };
+
 
 // List of types used by getTypeOfGroup,
 // see https://github.com/Khan/KaTeX/wiki/Examining-TeX#group-types
@@ -234,17 +276,17 @@ groupTypes.punct = function(group, options, prev) {
 groupTypes.ordgroup = function(group, options, prev) {
     return makeSpan(
         ["mord", options.style.cls()],
-        buildExpression(group.value, options.reset())
+        build(group.value, options.reset())
     );
 };
 
 groupTypes.text = function(group, options, prev) {
     return makeSpan(["text", "mord", options.style.cls()],
-        buildExpression(group.value.body, options.reset()));
+        build(group.value.body, options.reset()));
 };
 
 groupTypes.color = function(group, options, prev) {
-    var elements = buildExpression(
+    var elements = build(
         group.value.value,
         options.withColor(group.value.color),
         prev
@@ -267,21 +309,21 @@ groupTypes.supsub = function(group, options, prev) {
         return groupTypes[group.value.base.type](group, options, prev);
     }
 
-    var base = buildGroup(group.value.base, options.reset());
+    var base = build(group.value.base, options.reset());
     var supmid;
     var submid;
     var sup;
     var sub;
 
     if (group.value.sup) {
-        sup = buildGroup(group.value.sup,
+        sup = build(group.value.sup,
                 options.withStyle(options.style.sup()));
         supmid = makeSpan(
                 [options.style.reset(), options.style.sup().cls()], [sup]);
     }
 
     if (group.value.sub) {
-        sub = buildGroup(group.value.sub,
+        sub = build(group.value.sub,
                 options.withStyle(options.style.sub()));
         submid = makeSpan(
                 [options.style.reset(), options.style.sub().cls()], [sub]);
@@ -396,10 +438,10 @@ groupTypes.genfrac = function(group, options, prev) {
     var nstyle = fstyle.fracNum();
     var dstyle = fstyle.fracDen();
 
-    var numer = buildGroup(group.value.numer, options.withStyle(nstyle));
+    var numer = build(group.value.numer, options.withStyle(nstyle));
     var numerreset = makeSpan([fstyle.reset(), nstyle.cls()], [numer]);
 
-    var denom = buildGroup(group.value.denom, options.withStyle(dstyle));
+    var denom = build(group.value.denom, options.withStyle(dstyle));
     var denomreset = makeSpan([fstyle.reset(), dstyle.cls()], [denom]);
 
     var ruleWidth;
@@ -548,7 +590,7 @@ groupTypes.array = function(group, options, prev) {
 
         var outrow = new Array(inrow.length);
         for (c = 0; c < inrow.length; ++c) {
-            var elt = buildGroup(inrow[c], options);
+            var elt = build(inrow[c], options);
             if (depth < elt.depth) {
                 depth = elt.depth;
             }
@@ -699,7 +741,7 @@ groupTypes.spacing = function(group, options, prev) {
 
 groupTypes.llap = function(group, options, prev) {
     var inner = makeSpan(
-        ["inner"], [buildGroup(group.value.body, options.reset())]);
+        ["inner"], [build(group.value.body, options.reset())]);
     var fix = makeSpan(["fix"], []);
     return makeSpan(
         ["llap", options.style.cls()], [inner, fix]);
@@ -707,7 +749,7 @@ groupTypes.llap = function(group, options, prev) {
 
 groupTypes.rlap = function(group, options, prev) {
     var inner = makeSpan(
-        ["inner"], [buildGroup(group.value.body, options.reset())]);
+        ["inner"], [build(group.value.body, options.reset())]);
     var fix = makeSpan(["fix"], []);
     return makeSpan(
         ["rlap", options.style.cls()], [inner, fix]);
@@ -787,7 +829,7 @@ groupTypes.op = function(group, options, prev) {
         // We manually have to handle the superscripts and subscripts. This,
         // aside from the kern calculations, is copied from supsub.
         if (supGroup) {
-            var sup = buildGroup(
+            var sup = build(
                 supGroup, options.withStyle(options.style.sup()));
             supmid = makeSpan(
                 [options.style.reset(), options.style.sup().cls()], [sup]);
@@ -798,7 +840,7 @@ groupTypes.op = function(group, options, prev) {
         }
 
         if (subGroup) {
-            var sub = buildGroup(
+            var sub = build(
                 subGroup, options.withStyle(options.style.sub()));
             submid = makeSpan(
                 [options.style.reset(), options.style.sub().cls()],
@@ -908,7 +950,7 @@ groupTypes.overline = function(group, options, prev) {
     // Overlines are handled in the TeXbook pg 443, Rule 9.
 
     // Build the inner group in the cramped style.
-    var innerGroup = buildGroup(group.value.body,
+    var innerGroup = build(group.value.body,
             options.withStyle(options.style.cramp()));
 
     var ruleWidth = fontMetrics.metrics.defaultRuleThickness /
@@ -935,7 +977,7 @@ groupTypes.underline = function(group, options, prev) {
     // Underlines are handled in the TeXbook pg 443, Rule 10.
 
     // Build the inner group.
-    var innerGroup = buildGroup(group.value.body, options);
+    var innerGroup = build(group.value.body, options);
 
     var ruleWidth = fontMetrics.metrics.defaultRuleThickness /
         options.style.sizeMultiplier;
@@ -962,7 +1004,7 @@ groupTypes.sqrt = function(group, options, prev) {
 
     // First, we do the same steps as in overline to build the inner group
     // and line
-    var inner = buildGroup(group.value.body,
+    var inner = build(group.value.body,
             options.withStyle(options.style.cramp()));
 
     var ruleWidth = fontMetrics.metrics.defaultRuleThickness /
@@ -1029,7 +1071,7 @@ groupTypes.sqrt = function(group, options, prev) {
         // Handle the optional root index
 
         // The index is always in scriptscript style
-        var root = buildGroup(
+        var root = build(
             group.value.index,
             options.withStyle(Style.SCRIPTSCRIPT));
         var rootWrap = makeSpan(
@@ -1060,7 +1102,7 @@ groupTypes.sizing = function(group, options, prev) {
     // Handle sizing operators like \Huge. Real TeX doesn't actually allow
     // these functions inside of math expressions, so we do some special
     // handling.
-    var inner = buildExpression(group.value.value,
+    var inner = build(group.value.value,
             options.withSize(group.value.size), prev);
 
     var span = makeSpan(["mord"],
@@ -1089,7 +1131,7 @@ groupTypes.styling = function(group, options, prev) {
     var newStyle = style[group.value.style];
 
     // Build the inner expression in the new style.
-    var inner = buildExpression(
+    var inner = build(
         group.value.value, options.withStyle(newStyle), prev);
 
     return makeSpan([options.style.reset(), newStyle.cls()], inner);
@@ -1097,7 +1139,7 @@ groupTypes.styling = function(group, options, prev) {
 
 groupTypes.font = function(group, options, prev) {
     var font = group.value.font;
-    return buildGroup(group.value.body, options.withFont(font), prev);
+    return build(group.value.body, options.withFont(font), prev);
 };
 
 groupTypes.delimsizing = function(group, options, prev) {
@@ -1118,7 +1160,7 @@ groupTypes.delimsizing = function(group, options, prev) {
 
 groupTypes.leftright = function(group, options, prev) {
     // Build the inner expression
-    var inner = buildExpression(group.value.body, options.reset());
+    var inner = build(group.value.body, options.reset());
 
     var innerHeight = 0;
     var innerDepth = 0;
@@ -1146,8 +1188,6 @@ groupTypes.leftright = function(group, options, prev) {
             group.value.left, innerHeight, innerDepth, options,
             group.mode);
     }
-    // Add it to the beginning of the expression
-    inner.unshift(leftDelim);
 
     var rightDelim;
     // Same for the right delimiter
@@ -1158,11 +1198,9 @@ groupTypes.leftright = function(group, options, prev) {
             group.value.right, innerHeight, innerDepth, options,
             group.mode);
     }
-    // Add it to the end of the expression.
-    inner.push(rightDelim);
 
     return makeSpan(
-        ["minner", options.style.cls()], inner, options.getColor());
+        ["minner", options.style.cls()], [leftDelim, inner, rightDelim], options.getColor());
 };
 
 groupTypes.rule = function(group, options, prev) {
@@ -1255,12 +1293,12 @@ groupTypes.accent = function(group, options, prev) {
 
         // Rerender the supsub group with its new base, and store that
         // result.
-        supsubGroup = buildGroup(
+        supsubGroup = build(
             supsub, options.reset(), prev);
     }
 
     // Build the base group
-    var body = buildGroup(
+    var body = build(
         base, options.withStyle(options.style.cramp()));
 
     // Calculate the skew of the accent. This is based on the line "If the
@@ -1274,7 +1312,7 @@ groupTypes.accent = function(group, options, prev) {
         // innermost character. To do that, we find the innermost character:
         var baseChar = getBaseElem(base);
         // Then, we render its group to get the symbol inside it
-        var baseGroup = buildGroup(
+        var baseGroup = build(
             baseChar, options.withStyle(options.style.cramp()));
         // Finally, we pull the skew off of the symbol.
         skew = baseGroup.skew;
@@ -1337,7 +1375,7 @@ groupTypes.accent = function(group, options, prev) {
 };
 
 groupTypes.phantom = function(group, options, prev) {
-    var elements = buildExpression(
+    var elements = build(
         group.value.value,
         options.withPhantom(),
         prev
@@ -1348,64 +1386,18 @@ groupTypes.phantom = function(group, options, prev) {
     return new buildCommon.makeFragment(elements);
 };
 
-/**
- * buildGroup is the function that takes a group and calls the correct groupType
- * function for it. It also handles the interaction of size and style changes
- * between parents and children.
- */
-var buildGroup = function(group, options, prev) {
-    if (!group) {
-        return makeSpan();
-    }
-
-    if(group instanceof Array){
-        var subgroups = group.map(function(g){ return buildGroup(g, options); });
-        return buildCommon.makeFragment(subgroups);
-    }
-
-    if (groupTypes[group.type]) {
-        // Call the groupTypes function
-        var groupNode = groupTypes[group.type](group, options, prev);
-        var multiplier;
-
-        // If the style changed between the parent and the current group,
-        // account for the size difference
-        if (options.style !== options.parentStyle) {
-            multiplier = options.style.sizeMultiplier /
-                    options.parentStyle.sizeMultiplier;
-
-            groupNode.height *= multiplier;
-            groupNode.depth *= multiplier;
-        }
-
-        // If the size changed between the parent and the current group, account
-        // for that size difference.
-        if (options.size !== options.parentSize) {
-            multiplier = buildCommon.sizingMultiplier[options.size] /
-                    buildCommon.sizingMultiplier[options.parentSize];
-
-            groupNode.height *= multiplier;
-            groupNode.depth *= multiplier;
-        }
-
-        return groupNode;
-    } else {
-        throw new ParseError(
-            "Got group of unknown type: '" + group.type + "'");
-    }
-};
 
 /**
  * Take an entire parse tree, and build it into an appropriate set of HTML
  * nodes.
  */
 var buildHTML = function(tree, options) {
-    // buildExpression is destructive, so we need to make a clone
+    // build is destructive, so we need to make a clone
     // of the incoming tree so that it isn't accidentally changed
     tree = JSON.parse(JSON.stringify(tree));
 
     // Build the expression contained in the tree
-    var expression = buildExpression(tree, options);
+    var expression = build(tree, options);
     var body = makeSpan(["base", options.style.cls()], expression);
 
     // Add struts, which ensure that the top of the HTML element falls at the
