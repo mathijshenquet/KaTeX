@@ -498,6 +498,11 @@ var buildGroup = function(group, options) {
         return new mathMLTree.MathNode("mrow");
     }
 
+    if(group instanceof Array){
+        var subgroups = group.map(function(g){ return buildGroup(g, options); });
+        return new mathMLTree.MathNode("mrow", subgroups)
+    }
+
     if (groupTypes[group.type]) {
         // Call the groupTypes function
         return groupTypes[group.type](group, options);

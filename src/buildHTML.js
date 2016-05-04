@@ -1358,6 +1358,11 @@ var buildGroup = function(group, options, prev) {
         return makeSpan();
     }
 
+    if(group instanceof Array){
+        var subgroups = group.map(function(g){ return buildGroup(g, options); });
+        return buildCommon.makeFragment(subgroups);
+    }
+
     if (groupTypes[group.type]) {
         // Call the groupTypes function
         var groupNode = groupTypes[group.type](group, options, prev);

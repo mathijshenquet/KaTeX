@@ -588,3 +588,58 @@ defineFunction(["\\begin", "\\end"], {
         namepos: context.positions[1],
     };
 });
+
+function defineMacro(names, props, macro) {
+    var handler = function(context, args){
+        return macro.apply(context.parser, args);
+    };
+
+    defineFunction(names, props, handler);
+}
+
+var mkern = function(mu){
+    return {
+        type: "kern", 
+        mode: "math", 
+        value: { 
+            dimension: {
+                unit: "mu", 
+                number: mu
+            }
+        }
+    };
+}
+
+var open = function(value){
+    return {type: "open", value: value, mode: "math"};
+}
+
+var close = function(value){
+    return {type: "close", value: value, mode: "math"};
+}
+
+var op = function(op){
+    return {
+        type: "op", 
+        mode: "math",
+        value: {
+            type: "op",
+            limits: false,
+            symbol: false,
+            body: "\\"+op
+        }
+    }
+}
+
+// amsmath - 
+// \newcommand{\pod}[1]{\allowbreak
+//   \if@display\mkern18mu\else\mkern8mu\fi(#1)}
+defineMacro("\\pod", 1, function(n){
+    return [mkern(18), open("("), n, close(")")];
+})
+
+// amsmath
+// \renewcommand{\pmod}[1]{\pod{{\operator@font mod}\mkern6mu#1}}
+defineMacro("\\pmod", 1, function(n){
+    return this.callFunction("\\pod", [[op("mod"), mkern(6), n]]);
+})
