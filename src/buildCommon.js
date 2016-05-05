@@ -174,6 +174,10 @@ var sizeElementFromChildren = function(elem) {
  * Makes a span with the given list of classes, list of children, and color.
  */
 var makeSpan = function(classes, children, color) {
+    if(children instanceof domTree.documentFragment){
+        children = children.children;
+    }
+
     if(children != undefined && !(children instanceof Array)){
         var child = children;
         children = [child];

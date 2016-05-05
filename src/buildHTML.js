@@ -290,17 +290,15 @@ groupTypes.text = function(group, options, prev) {
 };
 
 groupTypes.color = function(group, options, prev) {
-    var elements = build(
-        group.value.value,
-        options.withColor(group.value.color),
-        prev
-    );
-
     // \color isn't supposed to affect the type of the elements it contains.
     // To accomplish this, we wrap the results in a fragment, so the inner
     // elements will be able to directly interact with their neighbors. For
     // example, `\color{red}{2 +} 3` has the same spacing as `2 + 3`
-    return new buildCommon.makeFragment(elements);
+    return build(
+        group.value.value,
+        options.withColor(group.value.color),
+        prev
+    );
 };
 
 groupTypes.supsub = function(group, options, prev) {
@@ -1373,15 +1371,14 @@ groupTypes.accent = function(group, options, prev) {
 };
 
 groupTypes.phantom = function(group, options, prev) {
-    var elements = build(
+    // \phantom isn't supposed to affect the elements it contains.
+    // See "color" for more details.
+
+    return build(
         group.value.value,
         options.withPhantom(),
         prev
     );
-
-    // \phantom isn't supposed to affect the elements it contains.
-    // See "color" for more details.
-    return new buildCommon.makeFragment(elements);
 };
 
 
