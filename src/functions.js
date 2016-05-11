@@ -7,12 +7,11 @@ var ParseError = require("./ParseError");
  * The first argument to defineFunction is a single name or a list of names.
  * All functions named in such a list will share a single implementation.
  *
- * Each declared function can have associated properties, which
- * include the following:
+ * (optional) Each declared function can have associated properties. If this is
+ * not specified the number of arguments is inferred from the handler. The 
+ * following properties are recognized:
  *
  *  - numArgs: The number of arguments the function takes.
- *             If this is the only property, it can be passed as a number
- *             instead of an element of a properties object.
  *  - argTypes: (optional) An array corresponding to each argument of the
  *              function, giving the type of argument that should be parsed. Its
  *              length should be equal to `numArgs + numOptionalArgs`. Valid
@@ -30,7 +29,7 @@ var ParseError = require("./ParseError");
  *              If undefined, this will be treated as an appropriate length
  *              array of "original" strings
  *  - greediness: (optional) The greediness of the function to use ungrouped
- *                arguments.
+ *                arguments.f
  *
  *                E.g. if you have an expression
  *                  \sqrt \frac 1 2
@@ -77,13 +76,33 @@ var ParseError = require("./ParseError");
  * in to the function in buildHTML/buildMathML as `group.value`.
  */
 
+var call = function(context, args) {
+    // The context is augmented such that from within a funciton
+    // we can call other functions 
+    context.call = function(name, args){
+        var innerContext = {
+            funcName: name,
+            lexer: this.lexer
+        }
+
+        return call(innerContext, args);
+    }
+
+    return exports[context.funcName].handler.apply(context, args);
+}
+
+exports.__call = call;
+
 function defineFunction(names, props, handler) {
+    if(handler === undefined){
+        handler = props;
+        props = { numArgs: handler.length };
+    }
+
     if (typeof names === "string") {
         names = [names];
     }
-    if (typeof props === "number") {
-        props = { numArgs: props };
-    }
+
     // Set default values of functions
     var data = {
         numArgs: props.numArgs,
@@ -91,10 +110,10 @@ function defineFunction(names, props, handler) {
         greediness: (props.greediness === undefined) ? 1 : props.greediness,
         allowedInText: !!props.allowedInText,
         numOptionalArgs: props.numOptionalArgs || 0,
-        handler: handler,
+        handler: handler
     };
     for (var i = 0; i < names.length; ++i) {
-        module.exports[names[i]] = data;
+        exports[names[i]] = data;
     }
 }
 
@@ -102,9 +121,7 @@ function defineFunction(names, props, handler) {
 defineFunction("\\sqrt", {
     numArgs: 1,
     numOptionalArgs: 1,
-}, function(context, args) {
-    var index = args[0];
-    var body = args[1];
+}, function(index, body) {
     return {
         type: "sqrt",
         body: body,
@@ -117,21 +134,10 @@ defineFunction("\\text", {
     numArgs: 1,
     argTypes: ["text"],
     greediness: 2,
-}, function(context, args) {
-    var body = args[0];
-    // Since the corresponding buildHTML/buildMathML function expects a
-    // list of elements, we normalize for different kinds of arguments
-    // TODO(emily): maybe this should be done somewhere else
-    var inner;
-    if (body.type === "ordgroup") {
-        inner = body.value;
-    } else {
-        inner = [body];
-    }
-
+}, function(body) {
     return {
         type: "text",
-        body: inner,
+        body: body,
     };
 });
 
@@ -141,29 +147,16 @@ defineFunction("\\color", {
     allowedInText: true,
     greediness: 3,
     argTypes: ["color", "original"],
-}, function(context, args) {
-    var color = args[0];
-    var body = args[1];
-    // Normalize the different kinds of bodies (see \text above)
-    var inner;
-    if (body.type === "ordgroup") {
-        inner = body.value;
-    } else {
-        inner = [body];
-    }
-
+}, function(color, body) {
     return {
         type: "color",
-        color: color.value,
-        value: inner,
+        color: color,
+        value: body,
     };
 });
 
 // An overline
-defineFunction("\\overline", {
-    numArgs: 1,
-}, function(context, args) {
-    var body = args[0];
+defineFunction("\\overline", function(body) {
     return {
         type: "overline",
         body: body,
@@ -171,10 +164,7 @@ defineFunction("\\overline", {
 });
 
 // An underline
-defineFunction("\\underline", {
-    numArgs: 1,
-}, function(context, args) {
-    var body = args[0];
+defineFunction("\\underline", function(body) {
     return {
         type: "underline",
         body: body,
@@ -186,51 +176,36 @@ defineFunction("\\rule", {
     numArgs: 2,
     numOptionalArgs: 1,
     argTypes: ["size", "size", "size"],
-}, function(context, args) {
-    var shift = args[0];
-    var width = args[1];
-    var height = args[2];
+}, function(shift, width, height) {
     return {
         type: "rule",
         shift: shift && shift.value,
-        width: width.value,
-        height: height.value,
+        width: width,
+        height: height,
     };
 });
 
 defineFunction("\\kern", {
     numArgs: 1,
     argTypes: ["size"],
-}, function(context, args) {
+}, function(dimension) {
     return {
         type: "kern",
-        dimension: args[0].value,
+        dimension: dimension,
     };
 });
 
 // A KaTeX logo
-defineFunction("\\KaTeX", {
-    numArgs: 0,
-}, function(context) {
+defineFunction("\\KaTeX", function() {
     return {
         type: "katex",
     };
 });
 
-defineFunction("\\phantom", {
-    numArgs: 1,
-}, function(context, args) {
-    var body = args[0];
-    var inner;
-    if (body.type === "ordgroup") {
-        inner = body.value;
-    } else {
-        inner = [body];
-    }
-
+defineFunction("\\phantom", function(body) {
     return {
         type: "phantom",
-        value: inner,
+        value: body,
     };
 });
 
@@ -294,19 +269,11 @@ defineFunction([
     numArgs: 1,
     allowedInText: true,
     greediness: 3,
-}, function(context, args) {
-    var body = args[0];
-    var atoms;
-    if (body.type === "ordgroup") {
-        atoms = body.value;
-    } else {
-        atoms = [body];
-    }
-
+}, function(body) {
     return {
         type: "color",
-        color: "katex-" + context.funcName.slice(1),
-        value: atoms,
+        color: "katex-" + this.funcName.slice(1),
+        value: body,
     };
 });
 
@@ -320,14 +287,12 @@ defineFunction([
     "\\cot", "\\coth", "\\csc", "\\deg", "\\dim", "\\exp", "\\hom",
     "\\ker", "\\lg", "\\ln", "\\log", "\\sec", "\\sin", "\\sinh",
     "\\tan", "\\tanh",
-], {
-    numArgs: 0,
-}, function(context) {
+], function() {
     return {
         type: "op",
         limits: false,
         symbol: false,
-        body: context.funcName,
+        body: this.funcName,
     };
 });
 
@@ -335,28 +300,24 @@ defineFunction([
 defineFunction([
     "\\det", "\\gcd", "\\inf", "\\lim", "\\liminf", "\\limsup", "\\max",
     "\\min", "\\Pr", "\\sup",
-], {
-    numArgs: 0,
-}, function(context) {
+], function() {
     return {
         type: "op",
         limits: true,
         symbol: false,
-        body: context.funcName,
+        body: this.funcName,
     };
 });
 
 // No limits, symbols
 defineFunction([
     "\\int", "\\iint", "\\iiint", "\\oint",
-], {
-    numArgs: 0,
-}, function(context) {
+], function() {
     return {
         type: "op",
         limits: false,
         symbol: true,
-        body: context.funcName,
+        body: this.funcName,
     };
 });
 
@@ -365,14 +326,12 @@ defineFunction([
     "\\coprod", "\\bigvee", "\\bigwedge", "\\biguplus", "\\bigcap",
     "\\bigcup", "\\intop", "\\prod", "\\sum", "\\bigotimes",
     "\\bigoplus", "\\bigodot", "\\bigsqcup", "\\smallint",
-], {
-    numArgs: 0,
-}, function(context) {
+], function() {
     return {
         type: "op",
         limits: true,
         symbol: true,
-        body: context.funcName,
+        body: this.funcName,
     };
 });
 
@@ -383,15 +342,13 @@ defineFunction([
 ], {
     numArgs: 2,
     greediness: 2,
-}, function(context, args) {
-    var numer = args[0];
-    var denom = args[1];
+}, function(numer, denom) {
     var hasBarLine;
     var leftDelim = null;
     var rightDelim = null;
     var size = "auto";
 
-    switch (context.funcName) {
+    switch (this.funcName) {
         case "\\dfrac":
         case "\\frac":
         case "\\tfrac":
@@ -408,7 +365,7 @@ defineFunction([
             throw new Error("Unrecognized genfrac command");
     }
 
-    switch (context.funcName) {
+    switch (this.funcName) {
         case "\\dfrac":
         case "\\dbinom":
             size = "display";
@@ -434,10 +391,9 @@ defineFunction([
 defineFunction(["\\llap", "\\rlap"], {
     numArgs: 1,
     allowedInText: true,
-}, function(context, args) {
-    var body = args[0];
+}, function(body) {
     return {
-        type: context.funcName.slice(1),
+        type: this.funcName.slice(1),
         body: body,
     };
 });
@@ -449,20 +405,17 @@ defineFunction([
     "\\bigm", "\\Bigm", "\\biggm", "\\Biggm",
     "\\big",  "\\Big",  "\\bigg",  "\\Bigg",
     "\\left", "\\right",
-], {
-    numArgs: 1,
-}, function(context, args) {
-    var delim = args[0];
+], function(delim) {
     if (!utils.contains(delimiters, delim.value)) {
         throw new ParseError(
             "Invalid delimiter: '" + delim.value + "' after '" +
-                context.funcName + "'",
-            context.lexer, context.positions[1]);
+                this.funcName + "'",
+            this.lexer, this.positions[1]);
     }
 
     // \left and \right are caught somewhere in Parser.js, which is
     // why this data doesn't match what is in buildHTML.
-    if (context.funcName === "\\left" || context.funcName === "\\right") {
+    if (this.funcName === "\\left" || this.funcName === "\\right") {
         return {
             type: "leftright",
             value: delim.value,
@@ -470,8 +423,8 @@ defineFunction([
     } else {
         return {
             type: "delimsizing",
-            size: delimiterSizes[context.funcName].size,
-            delimType: delimiterSizes[context.funcName].type,
+            size: delimiterSizes[this.funcName].size,
+            delimType: delimiterSizes[this.funcName].type,
             value: delim.value,
         };
     }
@@ -481,14 +434,14 @@ defineFunction([
 defineFunction([
     "\\tiny", "\\scriptsize", "\\footnotesize", "\\small",
     "\\normalsize", "\\large", "\\Large", "\\LARGE", "\\huge", "\\Huge",
-], 0, null);
+], {numArgs: 0}, null);
 
 // Style changing functions (handled in Parser.js explicitly, hence no
 // handler)
 defineFunction([
     "\\displaystyle", "\\textstyle", "\\scriptstyle",
     "\\scriptscriptstyle",
-], 0, null);
+], {numArgs: 0}, null);
 
 defineFunction([
     // styles
@@ -503,9 +456,8 @@ defineFunction([
 ], {
     numArgs: 1,
     greediness: 2,
-}, function(context, args) {
-    var body = args[0];
-    var func = context.funcName;
+}, function(body) {
+    var func = this.funcName;
     if (func in fontAliases) {
         func = fontAliases[func];
     }
@@ -522,23 +474,18 @@ defineFunction([
     "\\check", "\\hat", "\\vec", "\\dot",
     // We don't support expanding accents yet
     // "\\widetilde", "\\widehat"
-], {
-    numArgs: 1,
-}, function(context, args) {
-    var base = args[0];
+], function(base) {
     return {
         type: "accent",
-        accent: context.funcName,
+        accent: this.funcName,
         base: base,
     };
 });
 
 // Infix generalized fractions
-defineFunction(["\\over", "\\choose"], {
-    numArgs: 0,
-}, function(context) {
+defineFunction(["\\over", "\\choose"], function() {
     var replaceWith;
-    switch (context.funcName) {
+    switch (this.funcName) {
         case "\\over":
             replaceWith = "\\frac";
             break;
@@ -559,8 +506,7 @@ defineFunction(["\\\\", "\\cr"], {
     numArgs: 0,
     numOptionalArgs: 1,
     argTypes: ["size"],
-}, function(context, args) {
-    var size = args[0];
+}, function(size) {
     return {
         type: "cr",
         size: size,
@@ -571,41 +517,30 @@ defineFunction(["\\\\", "\\cr"], {
 defineFunction(["\\begin", "\\end"], {
     numArgs: 1,
     argTypes: ["text"],
-}, function(context, args) {
-    var nameGroup = args[0];
-    if (nameGroup.type !== "ordgroup") {
+}, function(nameGroup) {
+    if (!(nameGroup instanceof Array)) {
         throw new ParseError(
             "Invalid environment name",
-            context.lexer, context.positions[1]);
+            this.lexer, this.positions[1]);
     }
     var name = "";
-    for (var i = 0; i < nameGroup.value.length; ++i) {
-        name += nameGroup.value[i].value;
+    for (var i = 0; i < nameGroup.length; ++i) {
+        name += nameGroup[i].value;
     }
     return {
         type: "environment",
         name: name,
-        namepos: context.positions[1],
+        namepos: this.positions[1],
     };
 });
-
-function defineMacro(names, props, macro) {
-    var handler = function(context, args){
-        return macro.apply(context.parser, args);
-    };
-
-    defineFunction(names, props, handler);
-}
 
 var mkern = function(mu){
     return {
         type: "kern", 
         mode: "math", 
-        value: { 
-            dimension: {
-                unit: "mu", 
-                number: mu
-            }
+        dimension: {
+            unit: "mu", 
+            number: mu
         }
     };
 }
@@ -622,24 +557,21 @@ var op = function(op){
     return {
         type: "op", 
         mode: "math",
-        value: {
-            type: "op",
-            limits: false,
-            symbol: false,
-            body: "\\"+op
-        }
+        limits: false,
+        symbol: false,
+        body: "\\"+op
     }
 }
 
 // amsmath - 
 // \newcommand{\pod}[1]{\allowbreak
 //   \if@display\mkern18mu\else\mkern8mu\fi(#1)}
-defineMacro("\\pod", 1, function(n){
-    return [mkern(18), open("("), n, close(")")];
+defineFunction("\\pod", function(v){
+    return [mkern(18), open("("), v, close(")")];
 })
 
 // amsmath
 // \renewcommand{\pmod}[1]{\pod{{\operator@font mod}\mkern6mu#1}}
-defineMacro("\\pmod", 1, function(n){
-    return this.callFunction("\\pod", [[op("mod"), mkern(6), n]]);
+defineFunction("\\pmod", function(v){
+    return this.call("\\pod", [[op("mod"), mkern(6), v]]);
 })

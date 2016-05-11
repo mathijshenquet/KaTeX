@@ -20,6 +20,7 @@ function Options(data) {
     this.size = data.size;
     this.phantom = data.phantom;
     this.font = data.font;
+    this.mode = data.mode;
 
     if (data.parentStyle === undefined) {
         this.parentStyle = data.style;
@@ -47,6 +48,7 @@ Options.prototype.extend = function(extension) {
         parentSize: this.size,
         phantom: this.phantom,
         font: this.font,
+        mode: this.mode
     };
 
     for (var key in extension) {
@@ -91,6 +93,15 @@ Options.prototype.withColor = function(color) {
 Options.prototype.withPhantom = function() {
     return this.extend({
         phantom: true,
+    });
+};
+
+/**
+ * Create a new options object with the given mode.
+ */
+Options.prototype.withMode = function(mode) {
+    return this.extend({
+        mode: mode,
     });
 };
 

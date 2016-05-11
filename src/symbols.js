@@ -5,7 +5,7 @@
  * For each of the symbols, there are three properties they can have:
  * - font (required): the font to be used for this symbol. Either "main" (the
      normal font), or "ams" (the ams fonts).
- * - group (required): the ParseNode group type the symbol should have (i.e.
+ * - group (required): the parse ndoe group type the symbol should have (i.e.
      "textord", "mathord", etc).
      See https://github.com/Khan/KaTeX/wiki/Examining-TeX#group-types
  * - replace: the character that this symbol or function should be

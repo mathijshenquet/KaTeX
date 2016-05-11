@@ -24,10 +24,11 @@ function init() {
         input.value = decodeURIComponent(match[1]);
     }
 
-    reprocess();
+    katex.render(input.value, math);
 
     function reprocess() {
         try {
+            console.log(katex.__parse(input.value));
             katex.render(input.value, math);
         } catch (e) {
             if (e.__proto__ == katex.ParseError.prototype) {

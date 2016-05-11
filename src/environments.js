@@ -1,9 +1,6 @@
 /* eslint no-constant-condition:0 */
 var fontMetrics = require("./fontMetrics");
-var parseData = require("./parseData");
 var ParseError = require("./ParseError");
-
-var ParseNode = parseData.ParseNode;
 
 /**
  * Parse the body of the environment, with rows delimited by \\ and
@@ -16,7 +13,7 @@ function parseArray(parser, result) {
     var rowGaps = [];
     while (true) {
         var cell = parser.parseExpression(false, null);
-        row.push(new ParseNode("ordgroup", cell, parser.mode));
+        row.push({type: "ordgroup", data: cell});
         var next = parser.nextToken.text;
         if (next === "&") {
             parser.consume();
@@ -24,7 +21,7 @@ function parseArray(parser, result) {
             break;
         } else if (next === "\\\\" || next === "\\cr") {
             var cr = parser.parseFunction();
-            rowGaps.push(cr.value.size);
+            rowGaps.push(cr.size);
             row = [];
             body.push(row);
         } else {
@@ -36,7 +33,7 @@ function parseArray(parser, result) {
     }
     result.body = body;
     result.rowGaps = rowGaps;
-    return new ParseNode(result.type, result, parser.mode);
+    return result;
 }
 
 /*
@@ -90,7 +87,7 @@ defineEnvironment("array", {
     numArgs: 1,
 }, function(context, args) {
     var colalign = args[0];
-    colalign = colalign.value.map ? colalign.value : [colalign];
+    colalign = colalign.map ? colalign : [colalign];
     var cols = colalign.map(function(node) {
         var ca = node.value;
         if ("lcr".indexOf(ca) !== -1) {
@@ -142,11 +139,12 @@ defineEnvironment([
     };
     res = parseArray(context.parser, res);
     if (delimiters) {
-        res = new ParseNode("leftright", {
+        res = {
+            type: "leftright", 
             body: [res],
             left: delimiters[0],
             right: delimiters[1],
-        }, context.mode);
+        };
     }
     return res;
 });
@@ -172,12 +170,12 @@ defineEnvironment("cases", {
         }],
     };
     res = parseArray(context.parser, res);
-    res = new ParseNode("leftright", {
+    return {
+        type: "leftright",
         body: [res],
         left: "\\{",
         right: ".",
-    }, context.mode);
-    return res;
+    };
 });
 
 // An aligned environment is like the align* environment
@@ -191,12 +189,12 @@ defineEnvironment("aligned", {
         cols: [],
     };
     res = parseArray(context.parser, res);
-    var emptyGroup = new ParseNode("ordgroup", [], context.mode);
+    var emptyGroup = {type: "ordgroup", value: []};
     var numCols = 0;
-    res.value.body.forEach(function(row) {
+    res.body.forEach(function(row) {
         var i;
         for (i = 1; i < row.length; i += 2) {
-            row[i].value.unshift(emptyGroup);
+            row[i].data.unshift(emptyGroup);
         }
         if (numCols < row.length) {
             numCols = row.length;
@@ -210,7 +208,7 @@ defineEnvironment("aligned", {
         } else if (i > 0) {
             pregap = 2; // one \qquad between columns
         }
-        res.value.cols[i] = {
+        res.cols[i] = {
             type: "align",
             align: align,
             pregap: pregap,

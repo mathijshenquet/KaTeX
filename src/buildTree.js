@@ -19,6 +19,7 @@ var buildTree = function(tree, expression, settings) {
     var options = new Options({
         style: startStyle,
         size: "size5",
+        mode: "math"
     });
 
     // `buildHTML` sometimes messes with the parse tree (like turning bins ->
@@ -26,6 +27,7 @@ var buildTree = function(tree, expression, settings) {
     var mathMLNode = buildMathML(tree, expression, options);
     var htmlNode = buildHTML(tree, options);
 
+    
     var katexNode = makeSpan(["katex"], [
         mathMLNode, htmlNode,
     ]);

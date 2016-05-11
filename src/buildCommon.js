@@ -115,7 +115,7 @@ var mathit = function(value, mode, color, classes) {
  * Makes either a mathord or textord in the correct font and color.
  */
 var makeOrd = function(group, options, type) {
-    var mode = group.mode;
+    var mode = options.mode;
     var value = group.value;
     if (symbols[mode][value] && symbols[mode][value].replace) {
         value = symbols[mode][value].replace;
