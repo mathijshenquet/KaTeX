@@ -475,6 +475,11 @@ groupTypes.phantom = function(group, options, prev) {
     return new mathMLTree.MathNode("mphantom", inner);
 };
 
+groupTypes.mathchoice = function(group, options, prev){
+    var subgroup = group.cases[options.style.size]
+    return buildGroup(subgroup, options, prev);
+}
+
 /**
  * Takes a list of nodes, builds them, and returns a list of the generated
  * MathML nodes. A little simpler than the HTML version because we don't do any

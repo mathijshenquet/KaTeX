@@ -563,11 +563,24 @@ var op = function(op){
     }
 }
 
+ function mathchoice(display,text,script,scriptscript){
+    return {
+        type: "mathchoice",
+        cases: [display, text, script, scriptscript]
+    }
+}
+
+defineFunction("\\mathchoice",mathchoice);
+
+function ifDisplay(display, other){
+    return mathchoice(display, other, other, other);
+}
+
 // amsmath - 
 // \newcommand{\pod}[1]{\allowbreak
 //   \if@display\mkern18mu\else\mkern8mu\fi(#1)}
 defineFunction("\\pod", function(v){
-    return [mkern(18), open("("), v, close(")")];
+    return [ifDisplay(mkern(18), mkern(8)), open("("), v, close(")")];
 })
 
 // amsmath

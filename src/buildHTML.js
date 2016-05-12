@@ -1387,6 +1387,11 @@ groupTypes.phantom = function(group, options, prev) {
     );
 };
 
+groupTypes.mathchoice = function(group, options, prev){
+    var subgroup = group.cases[options.style.size]
+    return build(subgroup, options, prev);
+}
+
 
 /**
  * Take an entire parse tree, and build it into an appropriate set of HTML

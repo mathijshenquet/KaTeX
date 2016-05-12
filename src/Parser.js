@@ -506,7 +506,8 @@ Parser.prototype.callFunction = function(name, args, positions) {
     var context = {
         funcName: name,
         positions: positions,
-        lexer: this.lexer
+        lexer: this.lexer,
+        style: this.style
     };
     return functions.__call(context, args);
 };
