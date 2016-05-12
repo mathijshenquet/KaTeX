@@ -16,7 +16,7 @@ export UGLIFYJS = $(realpath ./node_modules/.bin/uglifyjs) \
 setup:
 	npm install
 
-lint: katex.js server.js cli.js $(wildcard src/*.js) $(wildcard test/*.js) $(wildcard contrib/*/*.js) $(wildcard dockers/*/*.js)
+lint: katex.js test/server.js cli.js $(wildcard src/*.js) $(wildcard test/*.js) $(wildcard contrib/*/*.js) $(wildcard dockers/*/*.js)
 	./node_modules/.bin/eslint $^
 
 build/katex.js: katex.js $(wildcard src/*.js)
@@ -73,7 +73,7 @@ compress: build/katex.min.js build/katex.min.css
 	@printf "Total:                 %6d\n" "${TOTAL}"
 
 serve:
-	node server.js
+	node test/server.js
 
 test:
 	JASMINE_CONFIG_PATH=test/jasmine.json node_modules/.bin/jasmine

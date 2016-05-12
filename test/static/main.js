@@ -1,6 +1,7 @@
 function init() {
     var input = document.getElementById("input");
     var math = document.getElementById("math");
+    var mathdisplay = document.getElementById("math-display");
     var permalink = document.getElementById("permalink");
 
     if ("oninput" in input) {
@@ -24,12 +25,15 @@ function init() {
         input.value = decodeURIComponent(match[1]);
     }
 
-    katex.render(input.value, math);
+    function render(){
+        console.log(katex.__parse(input.value));
+        katex.render(input.value, math);
+        katex.render(input.value, mathdisplay, {displayMode: true});
+    }
 
     function reprocess() {
         try {
-            console.log(katex.__parse(input.value));
-            katex.render(input.value, math);
+            render();
         } catch (e) {
             if (e.__proto__ == katex.ParseError.prototype) {
                 console.error(e);
@@ -38,6 +42,8 @@ function init() {
             }
         }
     }
+
+    render();
 }
 
 init();

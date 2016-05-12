@@ -1,12 +1,12 @@
 body {
     margin: 0px;
     padding: 0px;
-    font-size: 72px;
+    font-size: 36px;
 }
 
 #input {
     margin: 0px;
-    font-size: 100%;
+    font-size: 36px;
     width: 100%;
     box-sizing: border-box;
 }

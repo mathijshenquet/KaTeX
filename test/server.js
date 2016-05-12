@@ -41,17 +41,17 @@ var serveBrowserified = function(file, standaloneName) {
     };
 };
 
-app.get("/katex.js", serveBrowserified("./katex", "katex"));
-app.use("/test/jasmine",
+app.get("/katex.js", serveBrowserified("../katex", "katex"));
+app.use("/jasmine",
     express["static"](
         path.dirname(
             require.resolve("jasmine-core/lib/jasmine-core/jasmine.js")
         )
     )
 );
-app.get("/test/katex-spec.js", serveBrowserified("./test/*[Ss]pec.js"));
+app.get("/katex-spec.js", serveBrowserified("./test/*[Ss]pec.js"));
 app.get("/contrib/auto-render/auto-render.js",
-        serveBrowserified("./contrib/auto-render/auto-render",
+        serveBrowserified("../contrib/auto-render/auto-render",
                           "renderMathInElement"));
 
 app.get("/katex.css", function(req, res, next) {
@@ -78,10 +78,9 @@ app.get("/katex.css", function(req, res, next) {
     });
 });
 
-app.use(express["static"](path.join(__dirname, "static")));
-app.use(express["static"](path.join(__dirname, "build")));
-app.use("/test", express["static"](path.join(__dirname, "test")));
-app.use("/contrib", express["static"](path.join(__dirname, "contrib")));
+app.use("/fonts", express["static"](path.join(__dirname, "../static/fonts")));
+app.use(express["static"](path.join(__dirname, "../build")));
+app.use(express["static"](path.join(__dirname, "./static")));
 
 app.use(function(err, req, res, next) {
     console.error(err.stack);
