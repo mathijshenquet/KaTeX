@@ -588,7 +588,6 @@ describe("An over parser", function() {
 
     it("should create a numerator from the atoms before \\over", function() {
         var parse = getParsed(complexOver)[0];
-        console.log(parse);
         var numer = parse.numer;
         expect(numer.length).toEqual(4);
     });
@@ -627,8 +626,6 @@ describe("An over parser", function() {
     it("should handle nested fractions", function() {
         var nestedOverExpression = "{1 \\over 2} \\over 3";
         var parse = getParsed(nestedOverExpression)[0];
-
-        console.log(parse);
 
         expect(parse.type).toEqual("genfrac");
         expect(parse.numer[0].type).toEqual("genfrac");
