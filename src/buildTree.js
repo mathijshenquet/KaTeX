@@ -11,7 +11,7 @@ var buildTree = function(tree, expression, settings) {
     settings = settings || new Settings({});
 
     var startStyle = Style.TEXT;
-    if (settings.displayMode) {
+    if (settings.displayStyle) {
         startStyle = Style.DISPLAY;
     }
 
@@ -32,7 +32,7 @@ var buildTree = function(tree, expression, settings) {
         mathMLNode, htmlNode,
     ]);
 
-    if (settings.displayMode) {
+    if (settings.displayStyle) {
         return makeSpan(["katex-display"], [katexNode]);
     } else {
         return katexNode;

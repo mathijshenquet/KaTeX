@@ -14,13 +14,13 @@ function get(option, defaultValue) {
  * The main Settings object
  *
  * The current options stored are:
- *  - displayMode: Whether the expression should be typeset by default in
+ *  - displayStyle: Whether the expression should be typeset by default in
  *                 textstyle or displaystyle (default false)
  */
 function Settings(options) {
     // allow null options
     options = options || {};
-    this.displayMode = get(options.displayMode, false);
+    this.displayStyle = get(options.displayStyle, false);
     this.throwOnError = get(options.throwOnError, true);
     this.errorColor = get(options.errorColor, "#cc0000");
 }

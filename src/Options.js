@@ -1,14 +1,14 @@
 /**
- * This file contains information about the options that the Parser carries
- * around with it while parsing. Data is held in an `Options` object, and when
+ * This file contains information about the options that the builder carries
+ * around with it while building. Data is held in an `Options` object, and when
  * recursing, a new `Options` object can be created with the `.with*` and
  * `.reset` functions.
  */
 
 /**
  * This is the main options class. It contains the style, size, color, and font
- * of the current parse level. It also contains the style and size of the parent
- * parse level, so size changes can be handled efficiently.
+ * of the current scope. It also contains the style and size of the parent
+ * scope, so size changes can be handled efficiently.
  *
  * Each of the `.with*` and `.reset` functions passes its current style and size
  * as the parentStyle and parentSize of the new options class, so parent
