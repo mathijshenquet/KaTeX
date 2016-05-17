@@ -1344,7 +1344,7 @@ groupTypes.accent = function(group, options, prev) {
     var inner = makeSpan([], [accent]);
 
     if(group.accent.slice(0,5) === "\\wide"){
-        var width = body.countSymbols();
+        var width = body.countSymbols()+1;
         inner.style.transform = "scale("+width+",1)";
         inner.style.display = "inline-block";
         inner.style.width = "auto";
