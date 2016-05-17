@@ -492,7 +492,7 @@ defineFunction([
 });
 
 // Infix generalized fractions
-defineFunction(["\\over", "\\choose"], function() {
+defineFunction(["\\over", "\\choose"], 2, function() {
     var replaceWith;
     switch (this.funcName) {
         case "\\over":

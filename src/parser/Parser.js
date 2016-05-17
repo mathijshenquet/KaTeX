@@ -578,9 +578,9 @@ Parser.prototype.parseArguments = function(func, funcData) {
         }
         var argNode;
         if (arg.isFunction) {
-            var func = functions[arg.result];
-            var argGreediness = func.greediness;
-            if (func.numArgs === 0 || argGreediness > baseGreediness) {
+            var argFunc = functions[arg.result];
+            var argGreediness = argFunc.greediness;
+            if (argFunc.numArgs === 0 || argGreediness > baseGreediness) {
                 argNode = this.parseFunction(arg);
             } else {
                 throw new ParseError(

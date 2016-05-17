@@ -1552,8 +1552,8 @@ describe("An accent parser", function() {
         expect(parse.type).toEqual("supsub");
     });
 
-    it("should not parse expanding accents", function() {
-        expect("\\widehat{x}").toNotParse();
+    it("should parse expanding accents", function() {
+        expect("\\widehat{x}").toParse();
     });
 });
 
