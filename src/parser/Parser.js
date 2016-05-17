@@ -519,7 +519,9 @@ Parser.prototype.callFunction = function(name, args, positions) {
         funcName: name,
         positions: positions,
         lexer: this.lexer,
-        style: this.style
+        style: this.style,
+        parser: this,
+        symbol: symbols.__parse
     };
     return functions.__call(context, args);
 };
@@ -713,16 +715,17 @@ Parser.prototype.parseSymbol = function() {
         return new ParseFuncOrArgument(
             nucleus.text,
             true);
-    } else if (symbols[this.mode][nucleus.text]) {
+    }
+
+    var parse;
+    if (parse = symbols.__parse(this.mode, nucleus.text)) {
         this.consume();
         // Otherwise if this is a no-argument function, find the type it
         // corresponds to in the symbols map
-        return new ParseFuncOrArgument(
-            {type: symbols[this.mode][nucleus.text].group, value: nucleus.text},
-            false);
-    } else {
-        return null;
+        return new ParseFuncOrArgument(parse, false);
     }
+    
+    return null;
 };
 
 module.exports = Parser;

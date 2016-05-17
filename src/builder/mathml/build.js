@@ -308,10 +308,7 @@ groupTypes.spacing = function(group, options) {
         node = new mathMLTree.MathNode(
             "mtext", [new mathMLTree.TextNode("\u00a0")]);
     } else {
-        node = new mathMLTree.MathNode("mspace");
-
-        node.setAttribute(
-            "width", buildCommon.spacingFunctions[group.value].size);
+        throw new Error("Deprecated");
     }
 
     return node;
@@ -447,8 +444,8 @@ groupTypes.rule = function(group, options) {
 
 groupTypes.kern = function(group, options) {
     // TODO(kevin): Figure out if there's a way to add space in MathML
-    var node = new mathMLTree.MathNode("mrow");
-
+    var node = new mathMLTree.MathNode("mspace");
+    node.setAttribute("width", ""+group.dimension.number+group.dimension.unit);
     return node;
 };
 

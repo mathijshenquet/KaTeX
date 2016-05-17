@@ -741,11 +741,7 @@ groupTypes.spacing = function(group, options, prev) {
             [buildCommon.mathsym(group.value, options.mode)]
         );
     } else {
-        // Other kinds of spaces are of arbitrary width. We use CSS to
-        // generate these.
-        return makeSpan(
-            ["mord", "mspace",
-             buildCommon.spacingFunctions[group.value].className]);
+        throw new Error("Deprecated");
     }
 };
 

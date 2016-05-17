@@ -82,13 +82,21 @@ var call = function(context, args) {
     context.call = function(name, args){
         var innerContext = {
             funcName: name,
-            lexer: this.lexer
+            lexer: this.lexer,
+            parser: this.parser,
+            symbol: this.symbol
         }
 
         return call(innerContext, args);
     }
 
-    return exports[context.funcName].handler.apply(context, args);
+    var func;
+    if(func = exports[context.funcName])
+        return func.handler.apply(context, args);
+
+    if(args === undefined){
+        context.parser.parseSymbol(context.funcName);
+    }
 }
 
 exports.__call = call;
@@ -534,10 +542,27 @@ defineFunction(["\\begin", "\\end"], {
     };
 });
 
+var emkern = function(em){
+    return {
+        type: "kern",
+        dimension: {
+            unit: "em",
+            number: em
+        }
+    }
+}
+
+defineFunction("\\qquad", function(){ return emkern(2); });
+defineFunction("\\quad", function(){ return emkern(1); });
+defineFunction("\\enspace", function(){ return emkern(0.5); });
+defineFunction("\\;", function(){ return emkern(0.277778); });
+defineFunction("\\;", function(){ return emkern(0.22222); });
+defineFunction("\\,", function(){ return emkern(0.16667); });
+defineFunction("\\!", function(){ return emkern(-0.16667); });
+
 var mkern = function(mu){
     return {
         type: "kern", 
-        mode: "math", 
         dimension: {
             unit: "mu", 
             number: mu
@@ -587,4 +612,10 @@ defineFunction("\\pod", function(v){
 // \renewcommand{\pmod}[1]{\pod{{\operator@font mod}\mkern6mu#1}}
 defineFunction("\\pmod", function(v){
     return this.call("\\pod", [[op("mod"), mkern(6), v]]);
+})
+
+// amsmath
+// \newcommand{\implies}{\DOTSB\;\Longrightarrow\;}
+defineFunction("\\implies", function(){
+    return [this.call("\\;"), this.symbol("math", "\\Longrightarrow"), this.call("\\;")];
 })

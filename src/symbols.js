@@ -16,17 +16,27 @@
  * accepted in (e.g. "math" or "text").
  */
 
-module.exports = {
-    math: {},
-    text: {},
-};
+exports.math = {};
+exports.text = {};
 
 function defineSymbol(mode, font, group, replace, name) {
-    module.exports[mode][name] = {
+    exports[mode][name] = {
         font: font,
         group: group,
         replace: replace,
     };
+}
+
+exports.__parse = function parse(mode, symbol){
+    var node;
+    if(node = exports[mode][symbol]){
+        return {
+            type: node.group, 
+            value: symbol
+        }
+    }
+
+    return null;
 }
 
 // Some abbreviations for commonly used strings.
@@ -504,15 +514,8 @@ defineSymbol(math, main, rel, "\u2192", "\\rightarrow");
 defineSymbol(math, main, rel, "\u2192", "\\to");
 defineSymbol(math, ams, rel, "\u2271", "\\ngeq");
 defineSymbol(math, ams, rel, "\u2270", "\\nleq");
-defineSymbol(math, main, spacing, null, "\\!");
 defineSymbol(math, main, spacing, "\u00a0", "\\ ");
 defineSymbol(math, main, spacing, "\u00a0", "~");
-defineSymbol(math, main, spacing, null, "\\,");
-defineSymbol(math, main, spacing, null, "\\:");
-defineSymbol(math, main, spacing, null, "\\;");
-defineSymbol(math, main, spacing, null, "\\enspace");
-defineSymbol(math, main, spacing, null, "\\qquad");
-defineSymbol(math, main, spacing, null, "\\quad");
 defineSymbol(math, main, spacing, "\u00a0", "\\space");
 defineSymbol(math, main, punct, ",", ",");
 defineSymbol(math, main, punct, ";", ";");
