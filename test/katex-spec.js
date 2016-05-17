@@ -7,9 +7,9 @@
 
 var katex = require("../src/katex");
 var ParseError = katex.ParseError;
-var buildMathML = katex.buildMathML;
-var buildTree = katex.buildTree;
-var parseTree = katex.parseTree;
+var buildMathML = katex.__builder.buildMathML;
+var buildTree = katex.__build;
+var parseTree = katex.__parse;
 
 var defaultSettings = {};
 

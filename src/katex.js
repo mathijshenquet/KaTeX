@@ -60,16 +60,14 @@ var renderToString = function(expression, settings) {
 module.exports = {
     render: render,
     renderToString: renderToString,
+    ParseError: ParseError,
+
     /**
      * NOTE: This method is not currently recommended for public use.
      * The internal tree representation is unstable and is very likely
      * to change. Use at your own risk.
      */
     __parse: parseTree,
-    ParseError: ParseError,
-    
-    parseTree: parseTree,
-    buildTree: builder.buildHybrid,
-    buildHTML: builder.buildHTML,
-    buildMathML: builder.buildMathML
+    __build: builder.buildHybrid,
+    __builder: builder
 };

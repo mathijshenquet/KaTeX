@@ -5,8 +5,7 @@
 /* global describe: false */
 
 var katex = require("../src/katex");
-
-var parseTree = katex.parseTree;
+var parseTree = katex.__parse;
 
 var defaultSettings = {};
 
