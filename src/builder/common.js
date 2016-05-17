@@ -4,10 +4,11 @@
  * different kinds of domTree nodes in a consistent manner.
  */
 
-var domTree = require("./domTree");
-var fontMetrics = require("./fontMetrics");
-var symbols = require("./symbols");
-var utils = require("./utils");
+var fontMetrics = require("../fontMetrics");
+var symbols = require("../symbols");
+var utils = require("../utils");
+
+var domTree = require("./dom");
 
 var greekCapitals = [
     "\\Gamma",

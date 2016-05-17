@@ -13,8 +13,8 @@
 
 var matchAt = require("match-at");
 
-var utils = require("./utils");
-var ParseError = require("./ParseError");
+var utils = require("../utils");
+var ParseError = require("../ParseError");
 
 // The main lexer class
 function Lexer(input) {

@@ -6,14 +6,16 @@
  * called, to produce a final HTML tree.
  */
 
-var ParseError = require("./ParseError");
-var Style = require("./Style");
+var utils = require("../../utils");
+var ParseError = require("../../ParseError");
+var Style = require("../../Style");
 
-var buildCommon = require("./buildCommon");
+var buildCommon = require("../common");
+var fontMetrics = require("../../fontMetrics");
+
 var delimiter = require("./delimiter");
-var domTree = require("./domTree");
-var fontMetrics = require("./fontMetrics");
-var utils = require("./utils");
+var domTree = require("../dom");
+var Options = require("../Options");
 
 var makeSpan = buildCommon.makeSpan;
 
@@ -1397,7 +1399,9 @@ groupTypes.mathchoice = function(group, options, prev){
  * Take an entire parse tree, and build it into an appropriate set of HTML
  * nodes.
  */
-var buildHTML = function(tree, options) {
+var buildHTML = function(tree, settings) {
+    var options = Options.fromSettings(settings);
+
     // build is destructive, so we need to make a clone
     // of the incoming tree so that it isn't accidentally changed
     tree = JSON.parse(JSON.stringify(tree));

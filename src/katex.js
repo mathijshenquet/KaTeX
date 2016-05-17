@@ -7,24 +7,21 @@
  * errors in the expression, or errors in javascript handling.
  */
 
-var ParseError = require("./src/ParseError");
-var Settings = require("./src/Settings");
+var ParseError = require("./ParseError");
+var Parser = require("./parser/Parser");
 
-var buildTree = require("./src/buildTree");
-var parseTree = require("./src/parseTree");
-var utils = require("./src/utils");
+var builder = require("./builder");
+var utils = require("./utils");
 
 /**
  * Parse and build an expression, and place that expression in the DOM node
  * given.
  */
-var render = function(expression, baseNode, options) {
+var render = function(expression, baseNode, settings) {
     utils.clearNode(baseNode);
 
-    var settings = new Settings(options);
-
     var tree = parseTree(expression, settings);
-    var node = buildTree(tree, expression, settings).toNode();
+    var node = builder.buildHybrid(tree, expression, settings).toNode();
 
     baseNode.appendChild(node);
 };
@@ -44,21 +41,20 @@ if (typeof document !== "undefined") {
 }
 
 /**
- * Parse and build an expression, and return the markup for that.
+ * Parses an expression using a Parser, then returns the parsed result.
  */
-var renderToString = function(expression, options) {
-    var settings = new Settings(options);
+var parseTree = function(toParse, settings) {
+    var parser = new Parser(toParse, settings);
 
-    var tree = parseTree(expression, settings);
-    return buildTree(tree, expression, settings).toMarkup();
+    return parser.parse();
 };
 
 /**
- * Parse an expression and return the parse tree.
+ * Parse and build an expression, and return the markup for that.
  */
-var generateParseTree = function(expression, options) {
-    var settings = new Settings(options);
-    return parseTree(expression, settings);
+var renderToString = function(expression, settings) {
+    var tree = parseTree(expression, settings);
+    return builder.buildHybrid(tree, expression, settings).toMarkup();
 };
 
 module.exports = {
@@ -69,6 +65,11 @@ module.exports = {
      * The internal tree representation is unstable and is very likely
      * to change. Use at your own risk.
      */
-    __parse: generateParseTree,
+    __parse: parseTree,
     ParseError: ParseError,
+    
+    parseTree: parseTree,
+    buildTree: builder.buildHybrid,
+    buildHTML: builder.buildHTML,
+    buildMathML: builder.buildMathML
 };

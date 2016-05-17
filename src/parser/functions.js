@@ -1,5 +1,5 @@
-var utils = require("./utils");
-var ParseError = require("./ParseError");
+var utils = require("../utils");
+var ParseError = require("../ParseError");
 
 /* This file contains a list of functions that we parse, identified by
  * the calls to defineFunction.

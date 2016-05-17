@@ -8,7 +8,7 @@
  * Similar functions for working with MathML nodes exist in mathMLTree.js.
  */
 
-var utils = require("./utils");
+var utils = require("../utils");
 
 /**
  * Create an HTML className based on a list of classes. In addition to joining

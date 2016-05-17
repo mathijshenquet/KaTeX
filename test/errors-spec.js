@@ -4,10 +4,11 @@
 /* global it: false */
 /* global describe: false */
 
-var parseTree = require("../src/parseTree");
-var Settings = require("../src/Settings");
+var katex = require("../src/katex");
 
-var defaultSettings = new Settings({});
+var parseTree = katex.parseTree;
+
+var defaultSettings = {};
 
 beforeEach(function() {
     jasmine.addMatchers({

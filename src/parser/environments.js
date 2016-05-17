@@ -1,6 +1,6 @@
 /* eslint no-constant-condition:0 */
-var fontMetrics = require("./fontMetrics");
-var ParseError = require("./ParseError");
+var fontMetrics = require("../fontMetrics");
+var ParseError = require("../ParseError");
 
 /**
  * Parse the body of the environment, with rows delimited by \\ and

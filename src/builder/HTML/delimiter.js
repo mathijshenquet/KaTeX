@@ -20,13 +20,13 @@
  * used in `\left` and `\right`.
  */
 
-var ParseError = require("./ParseError");
-var Style = require("./Style");
+var utils = require("../../utils");
+var ParseError = require("../../ParseError");
+var Style = require("../../Style");
+var symbols = require("../../symbols");
 
-var buildCommon = require("./buildCommon");
-var fontMetrics = require("./fontMetrics");
-var symbols = require("./symbols");
-var utils = require("./utils");
+var buildCommon = require("../common");
+var fontMetrics = require("../../fontMetrics");
 
 var makeSpan = buildCommon.makeSpan;
 

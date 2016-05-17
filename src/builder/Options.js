@@ -5,6 +5,8 @@
  * `.reset` functions.
  */
 
+var Style = require("../Style");
+
 /**
  * This is the main options class. It contains the style, size, color, and font
  * of the current scope. It also contains the style and size of the parent
@@ -196,5 +198,21 @@ Options.prototype.getColor = function() {
         return colorMap[this.color] || this.color;
     }
 };
+
+Options.fromSettings = function(settings){
+    settings = settings || {};
+
+    var startStyle = Style.TEXT;
+    if (settings.displayStyle) {
+        startStyle = Style.DISPLAY;
+    }
+
+    // Setup the default options
+    return new Options({
+        style: startStyle,
+        size: "size5",
+        mode: "math"
+    });
+}
 
 module.exports = Options;

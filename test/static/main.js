@@ -28,7 +28,7 @@ function init() {
     function render(){
         console.log(katex.__parse(input.value));
         katex.render(input.value, math);
-        katex.render(input.value, mathdisplay, {displayMode: true});
+        katex.render(input.value, mathdisplay, {displayStyle: true});
     }
 
     function reprocess() {

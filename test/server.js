@@ -41,7 +41,7 @@ var serveBrowserified = function(file, standaloneName) {
     };
 };
 
-app.get("/katex.js", serveBrowserified("../katex", "katex"));
+app.get("/katex.js", serveBrowserified("./src/katex", "katex"));
 app.use("/jasmine",
     express["static"](
         path.dirname(

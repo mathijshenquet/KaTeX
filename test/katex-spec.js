@@ -5,21 +5,13 @@
 /* global it: false */
 /* global describe: false */
 
-var buildMathML = require("../src/buildMathML");
-var buildTree = require("../src/buildTree");
-var katex = require("../katex");
-var ParseError = require("../src/ParseError");
-var parseTree = require("../src/parseTree");
-var Options = require("../src/Options");
-var Settings = require("../src/Settings");
-var Style = require("../src/Style");
+var katex = require("../src/katex");
+var ParseError = katex.ParseError;
+var buildMathML = katex.buildMathML;
+var buildTree = katex.buildTree;
+var parseTree = katex.parseTree;
 
-var defaultSettings = new Settings({});
-var defaultOptions = new Options({
-    style: Style.TEXT,
-    size: "size5",
-    mode: "math"
-});
+var defaultSettings = {};
 
 var _getBuilt = function(expr, settings) {
     var usedSettings = settings ? settings : defaultSettings;
@@ -1334,7 +1326,7 @@ describe("A MathML font tree-builder", function() {
 
     it("should render " + contents + " with the correct mathvariants", function() {
         var tree = getParsed(contents);
-        var markup = buildMathML(tree, contents, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, contents, defaultSettings).toMarkup();
         expect(markup).toContain("<mi>A</mi>");
         expect(markup).toContain("<mi>x</mi>");
         expect(markup).toContain("<mn>2</mn>");
@@ -1347,7 +1339,7 @@ describe("A MathML font tree-builder", function() {
     it("should render \\mathbb{" + contents + "} with the correct mathvariants", function() {
         var tex = "\\mathbb{" + contents + "}";
         var tree = getParsed(tex);
-        var markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"double-struck\">A</mi>");
         expect(markup).toContain("<mi>x</mi>");
         expect(markup).toContain("<mn mathvariant=\"normal\">2</mn>");
@@ -1360,7 +1352,7 @@ describe("A MathML font tree-builder", function() {
     it("should render \\mathrm{" + contents + "} with the correct mathvariants", function() {
         var tex = "\\mathrm{" + contents + "}";
         var tree = getParsed(tex);
-        var markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"normal\">A</mi>");
         expect(markup).toContain("<mi mathvariant=\"normal\">x</mi>");
         expect(markup).toContain("<mn mathvariant=\"normal\">2</mn>");
@@ -1373,7 +1365,7 @@ describe("A MathML font tree-builder", function() {
     it("should render \\mathit{" + contents + "} with the correct mathvariants", function() {
         var tex = "\\mathit{" + contents + "}";
         var tree = getParsed(tex);
-        var markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"italic\">A</mi>");
         expect(markup).toContain("<mi mathvariant=\"italic\">x</mi>");
         expect(markup).toContain("<mn mathvariant=\"italic\">2</mn>");
@@ -1386,7 +1378,7 @@ describe("A MathML font tree-builder", function() {
     it("should render \\mathbf{" + contents + "} with the correct mathvariants", function() {
         var tex = "\\mathbf{" + contents + "}";
         var tree = getParsed(tex);
-        var markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"bold\">A</mi>");
         expect(markup).toContain("<mi mathvariant=\"bold\">x</mi>");
         expect(markup).toContain("<mn mathvariant=\"bold\">2</mn>");
@@ -1399,7 +1391,7 @@ describe("A MathML font tree-builder", function() {
     it("should render \\mathcal{" + contents + "} with the correct mathvariants", function() {
         var tex = "\\mathcal{" + contents + "}";
         var tree = getParsed(tex);
-        var markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"script\">A</mi>");
         expect(markup).toContain("<mi>x</mi>");                             // script is caps only
         expect(markup).toContain("<mn mathvariant=\"script\">2</mn>");
@@ -1414,7 +1406,7 @@ describe("A MathML font tree-builder", function() {
     it("should render \\mathfrak{" + contents + "} with the correct mathvariants", function() {
         var tex = "\\mathfrak{" + contents + "}";
         var tree = getParsed(tex);
-        var markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"fraktur\">A</mi>");
         expect(markup).toContain("<mi mathvariant=\"fraktur\">x</mi>");
         expect(markup).toContain("<mn mathvariant=\"fraktur\">2</mn>");
@@ -1429,7 +1421,7 @@ describe("A MathML font tree-builder", function() {
     it("should render \\mathscr{" + contents + "} with the correct mathvariants", function() {
         var tex = "\\mathscr{" + contents + "}";
         var tree = getParsed(tex);
-        var markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"script\">A</mi>");
         // MathJax marks everything below as "script" except \omega
         // We don't have these glyphs in "script" and neither does MathJax
@@ -1444,7 +1436,7 @@ describe("A MathML font tree-builder", function() {
     it("should render \\mathsf{" + contents + "} with the correct mathvariants", function() {
         var tex = "\\mathsf{" + contents + "}";
         var tree = getParsed(tex);
-        var markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         expect(markup).toContain("<mi mathvariant=\"sans-serif\">A</mi>");
         expect(markup).toContain("<mi mathvariant=\"sans-serif\">x</mi>");
         expect(markup).toContain("<mn mathvariant=\"sans-serif\">2</mn>");
@@ -1457,7 +1449,7 @@ describe("A MathML font tree-builder", function() {
     it("should render a combination of font and color changes", function() {
         var tex = "\\color{blue}{\\mathbb R}";
         var tree = getParsed(tex);
-        var markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        var markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         var node = "<mstyle mathcolor=\"blue\">" +
             "<mi mathvariant=\"double-struck\">R</mi>" +
             "</mstyle>";
@@ -1466,7 +1458,7 @@ describe("A MathML font tree-builder", function() {
         // reverse the order of the commands
         tex = "\\mathbb{\\color{blue}{R}}";
         tree = getParsed(tex);
-        markup = buildMathML(tree, tex, defaultOptions).toMarkup();
+        markup = buildMathML(tree, tex, defaultSettings).toMarkup();
         node = "<mstyle mathcolor=\"blue\">" +
             "<mi mathvariant=\"double-struck\">R</mi>" +
             "</mstyle>";
@@ -1704,7 +1696,7 @@ describe("An aligned environment", function() {
 
 var getMathML = function(expr) {
     expect(expr).toParse(defaultSettings);
-    var built = buildMathML(parseTree(expr, defaultSettings), expr, defaultOptions);
+    var built = buildMathML(parseTree(expr, defaultSettings), expr, defaultSettings);
 
     // Strip off the surrounding <span>
     return built.children[0];
@@ -1747,10 +1739,10 @@ describe("A parser that does not throw on unsupported commands", function() {
     // The parser breaks on unsupported commands unless it is explicitly
     // told not to
     var errorColor = "#933";
-    var noThrowSettings = new Settings({
+    var noThrowSettings = {
         throwOnError: false,
         errorColor: errorColor,
-    });
+    };
 
     it("should still parse on unrecognized control sequences", function() {
         expect("\\error").toParse(noThrowSettings);

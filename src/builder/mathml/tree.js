@@ -8,7 +8,7 @@
  * domTree.js, creating namespaced DOM nodes and HTML text markup respectively.
  */
 
-var utils = require("./utils");
+var utils = require("../../utils");
 
 /**
  * This node represents a general purpose MathML node of any type. The

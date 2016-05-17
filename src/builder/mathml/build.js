@@ -4,12 +4,13 @@
  * parser.
  */
 
-var buildCommon = require("./buildCommon");
-var fontMetrics = require("./fontMetrics");
-var mathMLTree = require("./mathMLTree");
-var ParseError = require("./ParseError");
-var symbols = require("./symbols");
-var utils = require("./utils");
+var buildCommon = require("../common");
+var fontMetrics = require("../../fontMetrics");
+var mathMLTree = require("./tree");
+var ParseError = require("../../ParseError");
+var symbols = require("../../symbols");
+var utils = require("../../utils");
+var Options = require("../Options");
 
 var makeSpan = buildCommon.makeSpan;
 var fontMap = buildCommon.fontMap;
@@ -525,7 +526,9 @@ var buildGroup = function(group, options) {
  * Note that we actually return a domTree element with a `<math>` inside it so
  * we can do appropriate styling.
  */
-var buildMathML = function(tree, texExpression, options) {
+var buildMathML = function(tree, texExpression, settings) {
+    var options = Options.fromSettings(settings);
+
     var expression = buildExpression(tree, options);
 
     // Wrap up the expression in an mrow so it is presented in the semantics

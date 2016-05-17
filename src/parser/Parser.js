@@ -2,10 +2,10 @@
 var functions = require("./functions");
 var environments = require("./environments");
 var Lexer = require("./Lexer");
-var symbols = require("./symbols");
-var utils = require("./utils");
+var symbols = require("../symbols");
+var utils = require("../utils");
 
-var ParseError = require("./ParseError");
+var ParseError = require("../ParseError");
 
 /**
  * This file contains the parser used to parse out a TeX expression from the
@@ -42,13 +42,25 @@ var ParseError = require("./ParseError");
  */
 
 /**
+ * Helper function for getting a default value if the value is undefined
+ */
+function get(option, defaultValue) {
+    return option === undefined ? defaultValue : option;
+}
+
+/**
  * Main Parser class
  */
 function Parser(input, settings) {
+    settings = settings || {};
+
     // Make a new lexer
     this.lexer = new Lexer(input);
     // Store the settings for use in parsing
-    this.settings = settings;
+    this.settings = {
+        throwOnError: get(settings.throwOnError, true),
+        errorColor: get(settings.errorColor, "#cc0000")
+    };
 }
 
 /**
