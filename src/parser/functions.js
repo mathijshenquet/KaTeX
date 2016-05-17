@@ -479,7 +479,8 @@ defineFunction([
 // Accents
 defineFunction([
     "\\acute", "\\grave", "\\ddot", "\\tilde", "\\bar", "\\breve",
-    "\\check", "\\hat", "\\vec", "\\dot",
+    "\\check", "\\hat", "\\vec", "\\dot", 
+    "\\widehat", "\\widetilde", "\\widebar", "\\widecheck"
     // We don't support expanding accents yet
     // "\\widetilde", "\\widehat"
 ], function(base) {

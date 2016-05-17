@@ -40,6 +40,14 @@ function span(classes, children, height, depth, maxFontSize, style) {
     this.attributes = {};
 }
 
+function countSymbols() {
+    return this.children.reduce(function(total, child){
+        return total + child.countSymbols();
+    }, 0);
+}
+
+span.prototype.countSymbols = countSymbols;
+
 /**
  * Sets an arbitrary attribute on the span. Warning: use this wisely. Not all
  * browsers support attributes the same, and having too many custom attributes
@@ -140,6 +148,9 @@ function documentFragment(children, height, depth, maxFontSize) {
     this.maxFontSize = maxFontSize || 0;
 }
 
+documentFragment.prototype.countSymbols = countSymbols;
+
+
 /**
  * Convert the fragment into a node
  */
@@ -184,6 +195,8 @@ function symbolNode(value, height, depth, italic, skew, classes, style) {
     this.style = style || {};
     this.maxFontSize = 0;
 }
+
+symbolNode.prototype.countSymbols = function(){ return 1; };
 
 /**
  * Creates a text node or span from a symbol node. Note that a span is only

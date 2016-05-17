@@ -1340,8 +1340,17 @@ groupTypes.accent = function(group, options, prev) {
     // TODO(emily): Fix this in a better way, like by changing the font
     var vecClass = group.accent === "\\vec" ? "accent-vec" : null;
 
-    var accentBody = makeSpan(["accent-body", vecClass], [
-        makeSpan([], [accent])]);
+
+    var inner = makeSpan([], [accent]);
+
+    if(group.accent.slice(0,5) === "\\wide"){
+        var width = body.countSymbols();
+        inner.style.transform = "scale("+width+",1)";
+        inner.style.display = "inline-block";
+        inner.style.width = "auto";
+    }
+
+    var accentBody = makeSpan(["accent-body", vecClass], inner);
 
     accentBody = buildCommon.makeVList([
         {type: "elem", elem: body},
