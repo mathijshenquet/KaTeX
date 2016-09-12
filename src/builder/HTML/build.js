@@ -74,10 +74,6 @@ var build = function(group, options, prev) {
 
         return groupNode;
     } else {
-        if(group instanceof Array){
-            return build({type: "ordgroup", value: group}, options, prev);
-        }
-
         throw new ParseError(
             "Got group of unknown type: '" + group.type + "'");
     }
@@ -175,9 +171,9 @@ var shouldHandleSupSub = function(group, options) {
 var getBaseElem = function(group) {
     if (!group) {
         return false;
-    } else if (group.type === "ordgroup") {
+    } else if (group instanceof Array) {
         if (group.length === 1) {
-            return getBaseElem(group.value[0]);
+            return getBaseElem(group[0]);
         } else {
             return group;
         }
@@ -600,7 +596,7 @@ groupTypes.array = function(group, options, prev) {
 
         var outrow = new Array(inrow.length);
         for (c = 0; c < inrow.length; ++c) {
-            var elt = build(inrow[c], options);
+            var elt = build({type: "ordgroup", value: inrow[c]}, options);
             if (depth < elt.depth) {
                 depth = elt.depth;
             }

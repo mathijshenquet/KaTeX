@@ -13,7 +13,7 @@ function parseArray(parser, result) {
     var rowGaps = [];
     while (true) {
         var cell = parser.parseExpression(false, null);
-        row.push({type: "ordgroup", value: cell});
+        row.push(cell);
         var next = parser.nextToken.text;
         if (next === "&") {
             parser.consume();
@@ -189,12 +189,12 @@ defineEnvironment("aligned", {
         cols: [],
     };
     res = parseArray(context.parser, res);
-    var emptyGroup = {type: "ordgroup", value: []};
+    var emptyGroup = [];
     var numCols = 0;
     res.body.forEach(function(row) {
         var i;
         for (i = 1; i < row.length; i += 2) {
-            row[i].value.unshift(emptyGroup);
+            row[i].unshift(emptyGroup);
         }
         if (numCols < row.length) {
             numCols = row.length;
